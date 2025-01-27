@@ -1,4 +1,4 @@
-# Healthcare_hibernate_1.0.2_solution
+# Healthcare_hibernate_1.0.2
 
 ### Ticket Breakdown: Healthcare Management System - Advanced Hibernate Relationships Implementation
 
