@@ -26,8 +26,9 @@ Implement the `Office` class and `OfficeRepositoryImpl` to manage office-related
      - Annotate `officeId` with `@Id` and `@GeneratedValue(strategy = GenerationType.IDENTITY)` to indicate the primary key.
      - Use `@Column` annotations for the `location` and `phone` fields to map them to their respective columns.
      - Use `@OneToOne` and `@JoinColumn(name = "DoctorID")` annotations to establish a one-to-one relationship with the `Doctor` entity.
-   - **Getters and Setters:**
+   - **Use Lombock**
      - Implement getters and setters for each attribute.
+     - Implement constructors
    - **Good to Know:**
      - **One-to-One Relationship:** Understand how Hibernate manages one-to-one relationships, especially with regard to foreign key constraints and cascading operations.
 
