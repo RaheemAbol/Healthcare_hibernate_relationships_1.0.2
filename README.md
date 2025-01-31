@@ -111,7 +111,63 @@ Implement the relationships between the `Doctor`, `Patient`, `Appointment`, and 
 
 ---
 
-### **Ticket 3: Refactor HealthRunner Class to Include Office Management**
+---
+
+### **Ticket 3: Implement Helper Methods in Repositories**
+#### **Tasks**
+1. **Implement `addPatientToDoctor(int doctorId, Patient patient)`**
+   ```java
+   public void addPatientToDoctor(int doctorId, Patient patient) {
+       try (Session session = sessionFactory.openSession()) {
+           Transaction transaction = session.beginTransaction();
+           Doctor doctor = session.get(Doctor.class, doctorId);
+           if (doctor != null && !doctor.getPatients().contains(patient)) {
+               doctor.getPatients().add(patient);
+               session.merge(doctor);
+           }
+           transaction.commit();
+       }
+   }
+   ```
+
+2. **Implement `removePatientFromDoctor(int doctorId, Patient patient)`**
+   ```java
+   public void removePatientFromDoctor(int doctorId, Patient patient) {
+       try (Session session = sessionFactory.openSession()) {
+           Transaction transaction = session.beginTransaction();
+           Doctor doctor = session.get(Doctor.class, doctorId);
+           if (doctor != null && doctor.getPatients().contains(patient)) {
+               doctor.getPatients().remove(patient);
+               session.merge(doctor);
+           }
+           transaction.commit();
+       }
+   }
+   ```
+3. **The reverse of addPatientToDoctor() && removePatientFromDoctor() need to be implemented in PatientRepositroyImpl** 
+   `addDoctorToPatient(int patientId, Doctor doctor) && removeDoctorFromPatient(int patientId, Doctor doctor)`
+
+
+4. **Implement `hasOtherAppointmentsBetween()`**
+   ```java
+   public boolean hasOtherAppointmentsBetween(int doctorId, int patientId) {
+       try (Session session = sessionFactory.openSession()) {
+           String query = "SELECT COUNT(a) FROM Appointment a " +
+                   "WHERE a.doctor.doctorId = :doctorId " +
+                   "AND a.patient.patientId = :patientId";
+           Long count = session.createQuery(query, Long.class)
+                   .setParameter("doctorId", doctorId)
+                   .setParameter("patientId", patientId)
+                   .uniqueResult();
+           return count != null && count > 1;
+       }
+   }
+   ```
+
+---
+
+
+### **Ticket 4: Refactor HealthRunner Class to Include Office Management**
 
 #### **Description:**
 Refactor the `HealthRunner` class to include options for managing offices in addition to patients, doctors, and appointments.
@@ -150,6 +206,36 @@ Refactor the `HealthRunner` class to include options for managing offices in add
 #### **Good to Know:**
    - **Error Handling:** Add error handling to manage invalid IDs or operations that fail due to database constraints.
    - **User Feedback:** Provide clear feedback to the user after each operation, such as confirmation messages for successful creation, updates, or deletion.
+
+---
+
+---
+
+## **Ticket 5: Refactor `HealthRunner` Class to Use Relationship Methods**
+### **Step 1: Modify the `manageAppointments()` Method**
+- Modify **Create Appointment**:
+  ```java
+  doctorService.addPatientToDoctor(doctorId, patient);
+  patientService.addDoctorToPatient(patientId, doctor);
+  ```
+
+- Modify **Update Appointment**:
+  ```java
+  if (!appointmentService.hasOtherAppointmentsBetween(
+          originalDoctor.getDoctorId(), originalPatient.getPatientId())) {
+      doctorService.removePatientFromDoctor(originalDoctor.getDoctorId(), originalPatient);
+      patientService.removeDoctorFromPatient(originalPatient.getPatientId(), originalDoctor);
+  }
+  ```
+
+- Modify **Delete Appointment**:
+  ```java
+  if (!appointmentService.hasOtherAppointmentsBetween(
+          doctorToCheck.getDoctorId(), patientToCheck.getPatientId())) {
+      doctorService.removePatientFromDoctor(doctorToCheck.getDoctorId(), patientToCheck);
+      patientService.removeDoctorFromPatient(patientToCheck.getPatientId(), doctorToCheck);
+  }
+  ```
 
 ---
 
