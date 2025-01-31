@@ -79,7 +79,7 @@ Implement the relationships between the `Doctor`, `Patient`, `Appointment`, and 
    - **One-to-One Relationship with Office:**
      - Ensure the `office` field is correctly annotated with `@OneToOne(mappedBy = "doctor", cascade = CascadeType.ALL)`.
    - **Many-to-Many Relationship with Patients:**
-     - Annotate the `patients` field with `@ManyToMany(fetch = FetchType.LAZY)` and configure the `@JoinTable` accordingly.
+     - Annotate the `patients` field with `@ManyToMany(cascade = {CascadeType.PERSIST},fetch = FetchType.LAZY)` and configure the `@JoinTable` accordingly.
    - **Good to Know:**
      - **MappedBy:** Understand the use of `mappedBy` in Hibernate to indicate the owner of the relationship.
 
@@ -87,20 +87,19 @@ Implement the relationships between the `Doctor`, `Patient`, `Appointment`, and 
    - **One-to-Many Relationship with Appointments:**
      - Annotate the `appointments` field with `@OneToMany(mappedBy = "patient", cascade = CascadeType.ALL, fetch = FetchType.LAZY)`.
    - **Many-to-Many Relationship with Doctors:**
-     - Annotate the `doctors` field with `@ManyToMany(mappedBy = "patients", fetch = FetchType.LAZY)`.
+     - Annotate the `doctors` field with `@ManyToMany(mappedBy = "patients",cascade = {CascadeType.PERSIST}, fetch = FetchType.LAZY)`.
    - **Good to Know:**
      - **Lazy Loading:** Understand how `fetch = FetchType.LAZY` works in Hibernate and when to use it.
 
 3. **Update Appointment Class for Relationships:**
    - **Many-to-One Relationship with Doctor:**
-     - Annotate the `doctor` field with `@ManyToOne(fetch = FetchType.LAZY)` and `@JoinColumn(name = "DoctorID")`.
+     - Annotate the `doctor` field with `@ManyToOne` and `@JoinColumn(name = "DoctorID")`.
    - **Many-to-One Relationship with Patient:**
-     - Annotate the `patient` field with `@ManyToOne(fetch = FetchType.LAZY)` and `@JoinColumn(name = "PatientID")`.
+     - Annotate the `patient` field with `@ManyToOne` and `@JoinColumn(name = "PatientID")`.
    - **Good to Know:**
      - **Bidirectional Relationships:** Ensure that both sides of the relationship (e.g., `Doctor` ↔ `Appointment`) are correctly mapped and consistent.
 
 4. **Test the Relationships:**
-   - **Write test cases** to verify that:
      - **One-to-Many:** A doctor can have multiple appointments, and deleting a doctor cascades to delete all associated appointments.
      - **Many-to-Many:** A patient can be associated with multiple doctors and vice versa, and changes are reflected in the junction table (`Doctor_Patient`).
      - **One-to-One:** Deleting an office or a doctor should correctly handle the one-to-one relationship.
@@ -115,7 +114,7 @@ Implement the relationships between the `Doctor`, `Patient`, `Appointment`, and 
 
 ### **Ticket 3: Implement Helper Methods in Repositories**
 #### **Tasks**
-1. **Implement `addPatientToDoctor(int doctorId, Patient patient)`**
+1. **In `DoctorRepositoryImpl` Implement `addPatientToDoctor(int doctorId, Patient patient)`**
    ```java
    public void addPatientToDoctor(int doctorId, Patient patient) {
        try (Session session = sessionFactory.openSession()) {
@@ -130,7 +129,7 @@ Implement the relationships between the `Doctor`, `Patient`, `Appointment`, and 
    }
    ```
 
-2. **Implement `removePatientFromDoctor(int doctorId, Patient patient)`**
+2. ** In `DoctorRepositoryImpl` Implement `removePatientFromDoctor(int doctorId, Patient patient)`**
    ```java
    public void removePatientFromDoctor(int doctorId, Patient patient) {
        try (Session session = sessionFactory.openSession()) {
@@ -148,7 +147,7 @@ Implement the relationships between the `Doctor`, `Patient`, `Appointment`, and 
    `addDoctorToPatient(int patientId, Doctor doctor) && removeDoctorFromPatient(int patientId, Doctor doctor)`
 
 
-4. **Implement `hasOtherAppointmentsBetween()`**
+4. **In `AppointmentRepositoryImpl` Implement `hasOtherAppointmentsBetween()`**
    ```java
    public boolean hasOtherAppointmentsBetween(int doctorId, int patientId) {
        try (Session session = sessionFactory.openSession()) {
@@ -163,7 +162,7 @@ Implement the relationships between the `Doctor`, `Patient`, `Appointment`, and 
        }
    }
    ```
-
+5. **Make sure these newly implemented methods are reflected inside of your services.**
 ---
 
 
@@ -212,7 +211,7 @@ Refactor the `HealthRunner` class to include options for managing offices in add
 ---
 
 ## **Ticket 5: Refactor `HealthRunner` Class to Use Relationship Methods**
-### **Step 1: Modify the `manageAppointments()` Method**
+### **Step 1: Modify the `manageAppointments()` method signiture to manageAppointments(appointmentService, patientService, doctorService, scanner)**
 - Modify **Create Appointment**:
   ```java
   doctorService.addPatientToDoctor(doctorId, patient);
